@@ -914,10 +914,10 @@
   dependencies:
     ts-loader "^6.1.2"
 
-"@looker/extension-sdk@^0.3.4":
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/@looker/extension-sdk/-/extension-sdk-0.3.4.tgz#ce522559bc9b96d42e1bb708d32d8de8f1309ce1"
-  integrity sha512-Ek8+VPE5ENMKTPdGXEePxP5YfS99zY93uKD/S2gJjuT8GW4X/srOSTSllhXBkhxa5pdgtSl1p4X7cCe2piS3qw==
+"@looker/extension-sdk@^0.3.6":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@looker/extension-sdk/-/extension-sdk-0.3.6.tgz#26d7f8ce2a15eb6342026e770d86b056641fa4b6"
+  integrity sha512-cFwHKEpv5ttocRYWy7ZlQsnZcGVdIrw2F71u5bW/ZpyOl2yrO6RtKdAEzrEulP0DwDe+zdqZBN2L2RrMYi0Qyg==
   dependencies:
     "@looker/chatty" "^2.2.0"
     "@looker/sdk" "^0.2.0-beta.26"
