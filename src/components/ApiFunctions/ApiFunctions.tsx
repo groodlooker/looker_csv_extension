@@ -83,7 +83,7 @@ export const ApiFunctions: React.FC<ApiFunctionsProps> = () => {
   }
 
   const openMarketplaceButtonClick = () => {
-    extensionHost.openBrowserWindow("https://docs.looker.com", "_marketplace")
+    extensionHost.openBrowserWindow("/marketplace", "_marketplace")
     updateMessages("Window opened")
   }
 
