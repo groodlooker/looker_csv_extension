@@ -59,6 +59,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ route }) => {
             Embed Look
           </MenuItem>
         </StyledRouterLink>
+        <StyledRouterLink to={ROUTES.EXTERNAL_API_ROUTE}>
+          <MenuItem icon="ApplicationSelect" current={route.startsWith(ROUTES.EXTERNAL_API_ROUTE)}>
+            External Api Functions
+          </MenuItem>
+        </StyledRouterLink>
       </MenuGroup>
     </Box>
   )
