@@ -119,6 +119,8 @@ Ther are three Embed demonstrations:
 
 ### External API Functions
 
+__This feature is not publicly available yet.__
+
 #### Fetch Proxy
 
 The fetch proxy demonstration requires that a json server be running. To start the server run the command
