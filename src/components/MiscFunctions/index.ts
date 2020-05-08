@@ -22,9 +22,4 @@
  * THE SOFTWARE.
  */
 
-import { Dispatch } from "react"
-
-export interface FetchDemoProps {
-  fetchDemoState: any
-  fetchDemoDispatch: Dispatch<any>
-}
+export * from "./MiscFunctions"
