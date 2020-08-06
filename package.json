@@ -1,6 +1,6 @@
 {
   "name": "extension-template-kitchensink",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Looker Extension SDK functionality demonstration",
   "main": "dist/bundle.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "@types/react-dom": "^16.9.3",
     "@types/react-router-dom": "^5.1.0",
     "@types/readable-stream": "^2.3.5",
+    "@types/semver": "^7.3.1",
     "@types/styled-components": "4.1.8",
     "@types/styled-system": "^5.1.3",
     "axios": "^0.19.2",
@@ -43,6 +44,7 @@
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.20",
     "react-router-dom": "^5.1.2",
+    "semver": "^7.3.2",
     "styled-components": "^4.4.1",
     "styled-system": "^5.1.2",
     "webpack": "^4.41.0",

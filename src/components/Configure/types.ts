@@ -26,6 +26,7 @@ import React from 'react'
 import { ConfigurationData } from '../../types'
 
 export interface ConfigureProps {
+  canPersistContextData: boolean
   configurationData: ConfigurationData
   updateConfigurationData(
     configurationData: ConfigurationData

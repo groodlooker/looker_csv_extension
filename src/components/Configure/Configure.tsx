@@ -42,6 +42,7 @@ import { ConfigureProps } from './types'
 import { ConfigurationData } from '../../types'
 
 export const Configure: React.FC<ConfigureProps> = ({
+  canPersistContextData,
   configurationData,
   updateConfigurationData,
 }) => {
@@ -53,13 +54,15 @@ export const Configure: React.FC<ConfigureProps> = ({
 
   useEffect(() => {
     const initialize = async () => {
-      try {
-        const contextData = await extensionSDK.refreshContextData()
-        if (contextData) {
-          setLocalConfigurationData(contextData as ConfigurationData)
+      if (canPersistContextData) {
+        try {
+          const contextData = await extensionSDK.refreshContextData()
+          if (contextData) {
+            setLocalConfigurationData(contextData as ConfigurationData)
+          }
+        } catch (error) {
+          console.error('failed to get latest context data', error)
         }
-      } catch (error) {
-        console.error('failed to get latest context data', error)
       }
     }
     setLocalConfigurationData({ ...configurationData })
@@ -238,13 +241,15 @@ export const Configure: React.FC<ConfigureProps> = ({
           value={localConfigurationData.lookId}
           onChange={changeLookId}
         />
-        <Button disabled={!!validationMessages}>Save configuration</Button>
+        <Button disabled={!!validationMessages}>Update configuration</Button>
       </Form>
-      <SpaceVertical width="50%">
-        <ButtonOutline onClick={onConfigResetClick}>
-          Reset configuration
-        </ButtonOutline>
-      </SpaceVertical>
+      {canPersistContextData && (
+        <SpaceVertical width="50%">
+          <ButtonOutline onClick={onConfigResetClick}>
+            Reset configuration
+          </ButtonOutline>
+        </SpaceVertical>
+      )}
     </>
   )
 }

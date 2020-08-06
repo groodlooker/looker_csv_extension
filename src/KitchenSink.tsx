@@ -22,9 +22,10 @@
  * THE SOFTWARE.
  */
 
-import React, { useState, useContext } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { Switch, Route } from 'react-router-dom'
 import styled from 'styled-components'
+import * as semver from 'semver'
 import { Box, ComponentsProvider, MessageBar } from '@looker/components'
 import {
   ExtensionContext,
@@ -60,100 +61,137 @@ export const KitchenSink: React.FC<KitchenSinkProps> = ({
 }) => {
   const extensionContext = useContext<ExtensionContextData>(ExtensionContext)
   const { extensionSDK, initializeError } = extensionContext
-  const [configurationData, setConfigurationData] = useState<ConfigurationData>(
-    extensionSDK.getContextData() || {
-      showApiFunctions: true,
-      showCoreSdkFunctions: true,
-      showEmbedDashboard: true,
-      showEmbedExplore: true,
-      showEmbedLook: true,
-      showExternalApiFunctions: true,
-      showMiscFunctions: true,
-      dashboardId: 1,
-      exploreId: 'thelook/products',
-      lookId: 1,
-    }
+  const [canPersistContextData, setCanPersistContextData] = useState<boolean>(
+    false
   )
+  const [configurationData, setConfigurationData] = useState<
+    ConfigurationData
+  >()
+
+  useEffect(() => {
+    const initialize = async () => {
+      // Context requires Looker version 7.14.0. If not supported provide
+      // default configuration object and disable saving of context data.
+      let context
+      if (
+        semver.intersects(
+          '>=7.14.0',
+          extensionSDK.lookerHostData?.lookerVersion || '7.0.0',
+          true
+        )
+      ) {
+        try {
+          context = await extensionSDK.getContextData()
+          setCanPersistContextData(true)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+      setConfigurationData(
+        context || {
+          showApiFunctions: true,
+          showCoreSdkFunctions: true,
+          showEmbedDashboard: true,
+          showEmbedExplore: true,
+          showEmbedLook: true,
+          showExternalApiFunctions: true,
+          showMiscFunctions: true,
+          dashboardId: 1,
+          exploreId: 'thelook/products',
+          lookId: 1,
+        }
+      )
+    }
+    initialize()
+  }, [])
 
   const updateConfigurationData = async (
     configurationData: ConfigurationData
   ): Promise<boolean> => {
     setConfigurationData(configurationData)
-    try {
-      await extensionSDK.saveContextData(configurationData)
-      return true
-    } catch (error) {
-      return false
+    if (canPersistContextData) {
+      try {
+        await extensionSDK.saveContextData(configurationData)
+        return true
+      } catch (error) {
+        console.log(error)
+      }
     }
+    return false
   }
 
   return (
-    <ComponentsProvider>
-      {initializeError ? (
-        <MessageBar intent="critical">{initializeError}</MessageBar>
-      ) : (
-        <Layout>
-          <Sidebar
-            route={route}
-            routeState={routeState}
-            configurationData={configurationData}
-          />
-          <Box>
-            <Switch>
-              {configurationData.showApiFunctions && (
-                <Route path={ROUTES.API_ROUTE}>
-                  <ApiFunctions />
-                </Route>
-              )}
-              {configurationData.showCoreSdkFunctions && (
-                <Route
-                  path={[
-                    ROUTES.CORESDK_ROUTE,
-                    `${ROUTES.CORESDK_ROUTE}?test=abcd`,
-                  ]}
-                >
-                  <CoreSDKFunctions />
-                </Route>
-              )}
-              {configurationData.showEmbedDashboard && (
-                <Route path={ROUTES.EMBED_DASHBOARD}>
-                  <EmbedDashboard id={configurationData.dashboardId} />
-                </Route>
-              )}
-              {configurationData.showEmbedExplore && (
-                <Route path={ROUTES.EMBED_EXPLORE}>
-                  <EmbedExplore id={configurationData.exploreId} />
-                </Route>
-              )}
-              {configurationData.showEmbedLook && (
-                <Route path={ROUTES.EMBED_LOOK}>
-                  <EmbedLook id={configurationData.lookId} />
-                </Route>
-              )}
-              {configurationData.showExternalApiFunctions && (
-                <Route path={ROUTES.EXTERNAL_API_ROUTE}>
-                  <ExternalApiFunctions />
-                </Route>
-              )}
-              {configurationData.showMiscFunctions && (
-                <Route path={ROUTES.MISC_ROUTE}>
-                  <MiscFunctions />
-                </Route>
-              )}
-              <Route path={ROUTES.CONFIG_ROUTE}>
-                <Configure
-                  configurationData={configurationData}
-                  updateConfigurationData={updateConfigurationData}
-                />
-              </Route>
-              <Route>
-                <Home />
-              </Route>
-            </Switch>
-          </Box>
-        </Layout>
+    <>
+      {configurationData && (
+        <ComponentsProvider>
+          {initializeError ? (
+            <MessageBar intent="critical">{initializeError}</MessageBar>
+          ) : (
+            <Layout>
+              <Sidebar
+                route={route}
+                routeState={routeState}
+                configurationData={configurationData}
+              />
+              <Box>
+                <Switch>
+                  {configurationData.showApiFunctions && (
+                    <Route path={ROUTES.API_ROUTE}>
+                      <ApiFunctions />
+                    </Route>
+                  )}
+                  {configurationData.showCoreSdkFunctions && (
+                    <Route
+                      path={[
+                        ROUTES.CORESDK_ROUTE,
+                        `${ROUTES.CORESDK_ROUTE}?test=abcd`,
+                      ]}
+                    >
+                      <CoreSDKFunctions />
+                    </Route>
+                  )}
+                  {configurationData.showEmbedDashboard && (
+                    <Route path={ROUTES.EMBED_DASHBOARD}>
+                      <EmbedDashboard id={configurationData.dashboardId} />
+                    </Route>
+                  )}
+                  {configurationData.showEmbedExplore && (
+                    <Route path={ROUTES.EMBED_EXPLORE}>
+                      <EmbedExplore id={configurationData.exploreId} />
+                    </Route>
+                  )}
+                  {configurationData.showEmbedLook && (
+                    <Route path={ROUTES.EMBED_LOOK}>
+                      <EmbedLook id={configurationData.lookId} />
+                    </Route>
+                  )}
+                  {configurationData.showExternalApiFunctions && (
+                    <Route path={ROUTES.EXTERNAL_API_ROUTE}>
+                      <ExternalApiFunctions />
+                    </Route>
+                  )}
+                  {configurationData.showMiscFunctions && (
+                    <Route path={ROUTES.MISC_ROUTE}>
+                      <MiscFunctions />
+                    </Route>
+                  )}
+                  <Route path={ROUTES.CONFIG_ROUTE}>
+                    <Configure
+                      configurationData={configurationData}
+                      updateConfigurationData={updateConfigurationData}
+                      canPersistContextData={canPersistContextData}
+                    />
+                  </Route>
+                  <Route>
+                    <Home />
+                  </Route>
+                </Switch>
+              </Box>
+            </Layout>
+          )}
+        </ComponentsProvider>
       )}
-    </ComponentsProvider>
+    </>
   )
 }
 
