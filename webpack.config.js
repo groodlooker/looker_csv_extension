@@ -56,6 +56,17 @@ module.exports = {
         test: /\.(js|jsx|ts|tsx)?$/,
         use: 'react-hot-loader/webpack',
         include: /node_modules/,
+      },
+      {
+        test: /\.(eot|woff|woff2|svg|ttf|png|jpg|gif)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 100000
+            }
+          }
+        ]
       }
     ],
   },

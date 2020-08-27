@@ -25,6 +25,9 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { App } from './App'
+import 'semantic-ui-css/semantic.min.css'
+import 'ag-grid-community/dist/styles/ag-grid.css';
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
 window.addEventListener('DOMContentLoaded', (event) => {
   var root = document.createElement('div')
