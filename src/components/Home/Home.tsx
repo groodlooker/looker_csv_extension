@@ -67,7 +67,7 @@ export const Home: React.FC<HomeProps> = () => {
   const datagroupTrigger = 'csv_uploader_sandbox_default_datagroup'
   //set an authorization token for github
   const octokit = new Octokit({
-    auth: "301fec5ad905e42672c6803ab3b022e89264df1c",
+    auth: "",
   });
 
   //function to write the file to your git repository
