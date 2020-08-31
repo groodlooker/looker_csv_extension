@@ -5,10 +5,12 @@ import { HomeProps } from './types'
 import { CSVReader } from 'react-papaparse'
 import { Grid, Container, Header, Segment, Button, Input } from 'semantic-ui-react'
 import { AgGridReact } from 'ag-grid-react';
+import { ReactTabulator } from 'react-tabulator';
 import { ADDRGETNETWORKPARAMS } from 'dns'
 import {
   ExtensionContext,
   ExtensionContextData,
+  getCore40SDK
 } from '@looker/extension-sdk-react'
 var GitHub = require('github-api');
 const { Octokit } = require("@octokit/core");
@@ -18,11 +20,42 @@ export const Home: React.FC<HomeProps> = () => {
 
   const extensionContext = useContext<ExtensionContextData>(ExtensionContext)
   const { extensionSDK } = extensionContext
+  const core40SDK = getCore40SDK()
 
   const [agData, setAgData] = useState<any>({
     columnDefs: null,
     rowData: null,
     ready: false
+  })
+
+  const [definitionsGrid,setDefinitionsGrid] = useState<any>(null)
+
+  const [tableProps, setTableProps] = useState<any>({
+    columnDefs: [
+      {
+        title: "Column Name",
+        field: "column",
+        sortable: true,
+        resizable: true
+      },
+      {
+        title: "Label",
+        field: "newColName",
+        editable: true,
+        editor: true
+      },
+      {
+        title: "Drill Fields",
+        field: "drills",
+        editable: true,
+        editor: "select",
+        editorParams: {
+          values: ["no options yet"],
+          multiselect: true
+        }
+      }
+    ],
+    rowData: [null]
   })
   const [insertDB,setInsertDB] = useState(true)
   const tableName = useRef<any>(null)
@@ -31,13 +64,14 @@ export const Home: React.FC<HomeProps> = () => {
     exploreName: null
   })
 
+  const tabRef = useRef<any>(null)
+
   //set the datagroup that you want to be used - it should be a dedicated one for this extension as the CSV's will want to be
   // persisted for a long time.
   const datagroupTrigger = 'csv_uploader_sandbox_default_datagroup'
-
   //set an authorization token for github
   const octokit = new Octokit({
-    auth: "5eae59161e0f1190e31b7ab62952eeee3afa6f8d",
+    auth: "",
   });
 
   //function to write the file to your git repository
@@ -59,16 +93,25 @@ export const Home: React.FC<HomeProps> = () => {
   }
   
   const handleOnDrop = (data:any) => {
-    console.log('---------------------------')
-    console.log(data)
+    // console.log('---------------------------')
+    // console.log(data)
     let fields: Array<string> = data[0]['meta']['fields']
+    //preview table column definitions
     const agCols = fields.map((cv:string) => ({
       headerName: cv,
       field: cv,
       filter: true,
       sortable: true
     }))
+    //user defined table definitions
+    const colDefs = fields.map((df:string) => ({
+      column: df,
+      newColName: null,
+      drills: null
+    }))
+    //rows for preview table
     let agRows: Array<any> = data.map((r: any) => {
+      // console.log(r.data)
       return r.data
     })
 
@@ -77,7 +120,18 @@ export const Home: React.FC<HomeProps> = () => {
       rowData: agRows,
       ready: true
     }
+
+    var updatedProps = JSON.parse(JSON.stringify(tableProps))
+
+    // const updatedProps = {
+    //   rowData: colDefs
+    // }
+
+    updatedProps.rowData = colDefs
+    updatedProps.columnDefs[2].editorParams.values = fields
     // console.log(agRows)
+    // console.log(updatedProps)
+    setTableProps(updatedProps)
     setAgData(agObj)
     // setColumnDefs(agCols)
     // setRowData(agRows)
@@ -93,10 +147,12 @@ export const Home: React.FC<HomeProps> = () => {
       columnDefs: null,
       rowData: null
     }
+    const disExp = {
+      disabled: true,
+      exploreName: null
+    }
     setAgData(clearAg)
-    console.log('---------------------------')
-    console.log(data)
-    console.log('---------------------------')
+    setExploreDisabled(disExp)
   }
 
   const csvProps = {
@@ -111,11 +167,52 @@ export const Home: React.FC<HomeProps> = () => {
     overlayNoRowsTemplate: optsString
   }
 
+  const onFirstDataRendered = (grid:any) => {
+    // console.log(grid)
+    grid.api.sizeColumnsToFit()
+    setDefinitionsGrid(grid)
+  }
+
+  var userInputGridOptions = {
+    overlayLoadingTemplate: optsString,
+    overlayNoRowsTemplate: optsString,
+    onFirstDataRendered: onFirstDataRendered
+  };
+
+  var tabOptions = {
+    placeholder: "waiting for data..."
+  }
+
+  const handleNewMetaData = () => {
+    // console.log(tabRef)
+    let tabTable:any = tabRef?.current.table
+    tabTable.selectRow('all')
+    // console.log(tabTable.getSelectedData())
+    let demRows = tabTable.getSelectedData()
+    tabTable.deselectRow()
+    // definitionsGrid.api.selectAll()
+    // var demRows = definitionsGrid.api.getSelectedRows()
+    // definitionsGrid.api.deselectAll()
+    // const lkmldefs = demRows.map((dv:string) => ({
+    //   headerName: cv,
+    //   field: cv,
+    //   filter: true,
+    //   sortable: true
+    // }))
+    for (const row of demRows) {
+      console.log(row)
+    }
+    return demRows
+  }
+
   var tbname = ''
   const buildLookML = (items:any) => {
+    var newMeta = handleNewMetaData()
+    // console.log(newMeta)
     tbname = tableName.current.value + "_" + uuidv4().replace(/\W/g,"_").toLowerCase()
     var dbstr = '';
     let viewFile = 'explore: ' + tbname + ' {label:"'+tableName.current.value+'"} view: ' + tbname + ' {label:"'+tableName.current.value+'" derived_table: { datagroup_trigger: '+datagroupTrigger+' create_process: { sql_step: create table ${SQL_TABLE_NAME} ('
+
     const data = agData.rowData.slice()
     if(insertDB) {
       const dims = data[0]
@@ -130,7 +227,12 @@ export const Home: React.FC<HomeProps> = () => {
         chunked_arr.push(data.slice(index, 500 + index));
         index += 500;
       }
-      console.log(chunked_arr.length)
+      // console.log(chunked_arr.length)
+      for (const nm of newMeta) {
+        var tmpstr;
+        let dtype = typeof nm
+
+      }
       for (var d in dims) {
         var tmpstr;
         let dtype = typeof dims[d] 
@@ -139,10 +241,21 @@ export const Home: React.FC<HomeProps> = () => {
         var dbtype = 'string'
         if(dtype == 'number') {
           dbtype = 'numeric'
-          lkmlstr += "{type:number}"
+          lkmlstr += "{type:number"
         } else {
-          lkmlstr += "{type:string}"
+          lkmlstr += "{type:string"
         }
+        var addlinfo = ''
+        if(newMeta[ln-1].newColName !== null) {
+          addlinfo += ' label: "' + newMeta[ln-1].newColName + '"'
+        }
+        if(newMeta[ln-1].drills?.length > 0) {
+          newMeta[ln-1].drills.forEach((item:any,index:number,arr:Array<any>) => {
+            arr[index] = item.replace(/\W/g,"_").toLowerCase()
+          })
+          addlinfo += " drill_fields: ["+newMeta[ln-1].drills.toString()+"]"
+        }
+        lkmlstr += addlinfo + "}"
         tmpstr += " " + dbtype 
         if (ln == dimsLen) {
         } else {
@@ -153,12 +266,9 @@ export const Home: React.FC<HomeProps> = () => {
       }
 
       viewFile += dbstr + ");;"
-      console.log(viewFile)
       
-
       for (let index = 0; index < chunked_arr.length; index++) {
         var newSQLstep = 'sql_step: INSERT ${SQL_TABLE_NAME} VALUES '
-        // viewFile += 'sql_step: INSERT ${SQL_TABLE_NAME} VALUES'
         const data = chunked_arr[index];
         var insertValues = ''
         data.forEach((item:any,index:number,array:Array<any>) => {
@@ -187,7 +297,8 @@ export const Home: React.FC<HomeProps> = () => {
           viewFile += newSQLstep
         }
       }
-      viewFile += "}} " + lkmlstr + "}"
+      // console.log(lkmlstr)
+      viewFile += "}} " + lkmlstr + "measure: count {type:count}}"
       gitWrite(viewFile,tbname).then((p) => {
         if(p.status == 201){
           console.log('successfully created the explore')
@@ -277,6 +388,30 @@ export const Home: React.FC<HomeProps> = () => {
           onClick={exploreData}
           >Explore the data</Button>
         </Grid.Column>
+      </Grid.Row>
+      <Grid.Row>
+        <Grid.Column width={4}></Grid.Column>
+      <Grid.Column width={8}>
+      <div
+        className="ag-theme-alpine"
+        style={{
+        height: '500px',
+        width: '100%' }}
+      >
+      {/* <AgGridReact
+          gridOptions={userInputGridOptions}
+          columnDefs={tableProps.columnDefs}
+          rowData={tableProps.rowData}>
+        </AgGridReact> */}
+      <ReactTabulator
+      ref={tabRef} 
+      columns={tableProps.columnDefs} 
+      data={tableProps.rowData}
+      options={tabOptions}
+      />
+      </div>
+      </Grid.Column>
+      <Grid.Column width={4}></Grid.Column>
       </Grid.Row>
     </Grid>
     </>

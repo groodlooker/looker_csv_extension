@@ -23,22 +23,16 @@
  */
 
 import React, { useState } from 'react'
-import { KitchenSink } from './KitchenSink'
 import { ExtensionProvider } from '@looker/extension-sdk-react'
 import { hot } from 'react-hot-loader/root'
+import { Home } from './components/Home'
+import 'react-tabulator/lib/styles.css'; // required styles
+import 'react-tabulator/lib/css/semantic-ui/tabulator_semantic-ui.min.css'; // theme
 
 export const App: React.FC<{}> = hot(() => {
-  const [route, setRoute] = useState('')
-  const [routeState, setRouteState] = useState()
-
-  const onRouteChange = (route: string, routeState?: any) => {
-    setRoute(route)
-    setRouteState(routeState)
-  }
-
   return (
-    <ExtensionProvider onRouteChange={onRouteChange}>
-      <KitchenSink route={route} routeState={routeState} />
+    <ExtensionProvider>
+      <Home></Home>
     </ExtensionProvider>
   )
 })

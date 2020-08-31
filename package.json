@@ -50,6 +50,7 @@
     "react-hot-loader": "^4.12.20",
     "react-papaparse": "^3.7.1",
     "react-router-dom": "^5.1.2",
+    "react-tabulator": "^0.13.2",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^1.2.0",
     "semver": "^7.3.2",
