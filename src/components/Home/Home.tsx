@@ -1,18 +1,14 @@
 import React, { useEffect, useState, useRef, useContext } from 'react'
-import { Heading, Paragraph, SpaceVertical } from '@looker/components'
-import { SandboxStatus } from '../SandboxStatus'
 import { HomeProps } from './types'
 import { CSVReader } from 'react-papaparse'
-import { Grid, Container, Header, Segment, Button, Input } from 'semantic-ui-react'
+import { Grid, Header, Segment, Button, Input } from 'semantic-ui-react'
 import { AgGridReact } from 'ag-grid-react';
 import { ReactTabulator } from 'react-tabulator';
-import { ADDRGETNETWORKPARAMS } from 'dns'
 import {
   ExtensionContext,
   ExtensionContextData,
   getCore40SDK
 } from '@looker/extension-sdk-react'
-var GitHub = require('github-api');
 const { Octokit } = require("@octokit/core");
 const { v4: uuidv4 } = require('uuid');
 
@@ -71,7 +67,7 @@ export const Home: React.FC<HomeProps> = () => {
   const datagroupTrigger = 'csv_uploader_sandbox_default_datagroup'
   //set an authorization token for github
   const octokit = new Octokit({
-    auth: "",
+    auth: "301fec5ad905e42672c6803ab3b022e89264df1c",
   });
 
   //function to write the file to your git repository
